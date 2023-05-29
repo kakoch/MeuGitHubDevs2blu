@@ -1,3 +1,6 @@
+CREATE SCHEMA IF NOT EXISTS restaurante;
+SET search_path TO restaurante;
+
 CREATE TABLE IF NOT EXISTS statusComanda (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(255),
@@ -32,9 +35,10 @@ CREATE TABLE IF NOT EXISTS pessoa (
     alteradoPor VARCHAR(255) NOT NULL
 );
 
-ALTER TABLE IF exists pessoa ALTER COLUMN cpf TYPE VARCHAR(11);
-ALTER TABLE IF exists pessoa ALTER COLUMN telefone TYPE VARCHAR(11);
-ALTER TABLE IF exists pessoa ALTER COLUMN dataNascimento TYPE DATE USING dataNascimento::date;
+ALTER TABLE pessoa ALTER  cpf TYPE CHAR(11);
+ALTER TABLE pessoa ALTER  telefone TYPE CHAR(11);
+ALTER TABLE pessoa ALTER  dataNascimento TYPE DATE USING dataNascimento::DATE;
+ALTER TABLE pessoa DROP COLUMN tipoSanguineo;
 
 CREATE TABLE IF NOT EXISTS mesa (
     id SERIAL PRIMARY KEY,
@@ -51,9 +55,12 @@ CREATE TABLE IF NOT EXISTS mesa (
     CONSTRAINT uniqueCodigo UNIQUE (codigo),
     --FOREIGN KEY (nomeChaveEstrangeira) REFERENCES statusMesa(id)
     FOREIGN KEY (statusMesaId) REFERENCES statusMesa(id),
-    FOREIGN KEY (atendenteId) REFERENCES usuario(id)
+    FOREIGN KEY (atendenteId) REFERENCES pessoa(id)
 );
 
+ALTER TABLE IF EXISTS mesa ALTER COLUMN atendenteId SET not null;
+ALTER TABLE IF EXISTS mesa ALTER COLUMN statusMesaId SET not null;
+ALTER TABLE mesa ADD CONSTRAINT uniqueAtendenteId UNIQUE (atendenteId);
 
 CREATE TABLE IF NOT EXISTS comanda (
     id SERIAL PRIMARY KEY,
@@ -71,7 +78,8 @@ CREATE TABLE IF NOT EXISTS comanda (
     FOREIGN KEY (clienteId) REFERENCES pessoa(id),
     FOREIGN KEY (statusComandaId) REFERENCES statusComanda(id)
 );
-ALTER TABLE IF exists comanda ALTER COLUMN mesaId TYPE INTEGER;
+
+ALTER TABLE IF EXISTS comanda ALTER COLUMN mesaId TYPE INTEGER;
 
 CREATE TABLE IF NOT EXISTS produto (
     id SERIAL PRIMARY KEY,
@@ -89,6 +97,9 @@ CREATE TABLE IF NOT EXISTS produto (
     alteradoPor VARCHAR(255) NOT NULL
 );
 
+ALTER TABLE IF EXISTS produto ALTER COLUMN nome TYPE VARCHAR(255);
+ALTER TABLE produto ADD CONSTRAINT uniqueNome UNIQUE (nome);
+
 CREATE TABLE IF NOT EXISTS CARDAPIO (
     id SERIAL PRIMARY KEY,
     pessoaId INTEGER,
@@ -100,7 +111,8 @@ CREATE TABLE IF NOT EXISTS CARDAPIO (
     alteradoPor VARCHAR(255) NOT NULL,
     FOREIGN KEY (pessoaId) REFERENCES pessoa(id)
 );
-ALTER TABLE IF exists CARDAPIO ALTER COLUMN login TYPE VARCHAR(255);
+
+DROP TABLE cardapio ;
 
 CREATE TABLE IF NOT EXISTS comandaProduto (
     id SERIAL PRIMARY KEY,
@@ -117,9 +129,10 @@ CREATE TABLE IF NOT EXISTS comandaProduto (
     FOREIGN KEY (produtoId) REFERENCES produto(id),
     FOREIGN KEY (statusComandaProdutoId) REFERENCES statusComandaProduto(id)
 );
+
 ALTER TABLE comandaProduto ALTER COLUMN alteradoEm TYPE VARCHAR(30) USING alteradoEm::VARCHAR;
 ALTER TABLE comandaProduto ALTER COLUMN alteradoEm TYPE TIMESTAMP USING alteradoEm::TIMESTAMP;
-ALTER TABLE comandaProduto ALTER COLUMN alteradoEm SET NOT NULL ;
+ALTER TABLE IF exists comandaProduto ALTER COLUMN alteradoEm SET NOT NULL ;
 
 CREATE TABLE IF NOT EXISTS usuario (
     id SERIAL PRIMARY KEY,
@@ -132,4 +145,5 @@ CREATE TABLE IF NOT EXISTS usuario (
     alteradoPor VARCHAR(255) NOT NULL,
     FOREIGN KEY (pessoaId) REFERENCES pessoa(id)
 );
-ALTER TABLE usuario ALTER COLUMN login TYPE VARCHAR(255);
+
+ALTER TABLE IF EXISTS usuario ALTER COLUMN login TYPE VARCHAR(255);
